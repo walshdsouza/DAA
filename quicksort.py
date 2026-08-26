@@ -32,7 +32,7 @@ def partition(arr, low, high):
     store_index = low + 1
     
     for i in range(low + 1, high + 1):
-        if arr[i] < pivot:
+        if arr[i] > pivot:
             arr[i], arr[store_index] = arr[store_index], arr[i]
             store_index += 1
             
