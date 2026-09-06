@@ -1,40 +1,51 @@
-def minmax(arr, start, end):
-    # Base case 1: Only one element in the subarray
-    if start == end:
-        return arr[start], arr[start]
-    
-    # Base case 2: Exactly two elements in the subarray
-    elif end == start + 1:
-        return min(arr[start], arr[end]), max(arr[start], arr[end])
-    
-    # Recursive case: More than two elements
-    else:
-        mid = (start + end) // 2
-        
-        # Recursively find min and max in the left and right halves
-        min1, max1 = minmax(arr, start, mid)
-        min2, max2 = minmax(arr, mid + 1, end)
-        
-        # Combine the results
-        return min(min1, min2), max(max1, max2)
+a = []
 
-# Main loop
-while True:
-    try:
-        arr = list(map(int, input("Enter the elements of the array separated by spaces: ").split()))
+
+def MaxMin(i, j, max, min):
+    if i == j:
+        max = a[i]
+        min = a[i]
+
+        print(f"{i} {j} {max} {min}")
+    elif i == j - 1:
+
+        if a[i] < a[j]:
+            max = a[j]
+            min = a[i]
+        else:
+            max = a[i]
+            min = a[j]
+
+        print(f"{i} {j} {max} {min}")
+
+    else:
         
-        if len(arr) == 0:
-            print("Array cannot be empty. Please enter at least one element.")
-            continue
-            
-        start = 0
-        end = len(arr) - 1
-        
-        # Call the corrected function
-        minimum, maximum = minmax(arr, start, end)
-        
-        print(f"Minimum: {minimum}, Maximum: {maximum}")
-        break
-        
-    except ValueError:
-        print("Invalid input. Please enter integers only.")
+        mid = (i + j) // 2
+
+        max1, min1 = MaxMin(i, mid, max, min)
+        max2, min2 = MaxMin(mid + 1, j, max, min)
+        if max < max1:
+            max = max1
+
+        if max < max2:
+            max = max2
+
+        if min > min1:
+            min = min1
+
+        if min > min2:
+            min = min2
+
+    return max, min
+print("Enter Size:")
+n = int(input().strip())
+
+print("Enter Elements:")
+a = [0] + list(map(int, input().strip().split()))
+max = 0
+min = 0
+
+print("i j max min")
+max, min = MaxMin(1, n, max, min)
+print("Maximum:", max)
+print("Minimum:", min)
