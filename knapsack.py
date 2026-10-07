@@ -1,79 +1,95 @@
-def solve_knapsack(weights, values, capacity, strategy='ratio'):
-    n = len(weights)
+from fractions import Fraction
 
-    items = []
-    for i in range(n):
-        items.append({
-            'index': i,
-            'weight': weights[i],
-            'value': values[i],
-            'ratio': values[i] / weights[i] if weights[i] > 0 else 0
-        })
 
-    if strategy == 'ratio':
-  
-        items.sort(key=lambda x: x['ratio'], reverse=True)
-    elif strategy == 'max_profit':
-       
-        items.sort(key=lambda x: x['value'], reverse=True)
-    elif strategy == 'least_weight':
-       
-        items.sort(key=lambda x: x['weight'], reverse=False)
-        
-    fractions = [0.0] * n
-    total_value = 0.0
-    current_weight = 0.0
-    
-    for item in items:
-        if current_weight + item['weight'] <= capacity:
-            fractions[item['index']] = 1.0
-            total_value += item['value']
-            current_weight += item['weight']
-        else:
-            remaining_capacity = capacity - current_weight
-            fraction = remaining_capacity / item['weight']
-            fractions[item['index']] = fraction
-            total_value += item['value'] * fraction
-            current_weight += remaining_capacity
-            break 
-            
-    return fractions, total_value
+def greedyKnapsack(m, items):
+    u = m
+    total = 0
+    included = {}
+
+    for idx, p, w in items:
+        if w > u:
+            frac = u / w
+            total += p * frac
+            included[idx] = w * frac
+            break
+
+        total += p
+        u -= w
+        included[idx] = w
+
+    return total, included
+
+
+def format_ratio(r):
+    r = Fraction(r)
+    return str(r.numerator) if r.denominator == 1 else f"{r.numerator}/{r.denominator}"
+
 
 def main():
-    print("=== Fractional Knapsack Solver ===")
+    n = int(input("Enter n: "))
 
-    try:
-        weights_input = input("Enter weights separated by commas: ")
-        weights = [float(w.strip()) for w in weights_input.split(',')]
-        
-        values_input = input("Enter values separated by commas: ")
-        values = [float(v.strip()) for v in values_input.split(',')]
-        
-        capacity = float(input("Enter total knapsack capacity: "))
-        
-        if len(weights) != len(values):
-            print("\nError: The number of weights and values must be exactly the same.")
-            return
-            
-    except ValueError:
-        print("\nError: Please enter valid numbers.")
-        return
-    frac_ratio, val_ratio = solve_knapsack(weights, values, capacity, strategy='ratio')
-    frac_profit, val_profit = solve_knapsack(weights, values, capacity, strategy='max_profit')
-    frac_weight, val_weight = solve_knapsack(weights, values, capacity, strategy='least_weight')
-    print("\n--- Results ---")
-    
-    print("\n1. Optimal Strategy (Max Profit/Weight Ratio)")
-    print(f"Total Value: {val_ratio:.2f}")
-    print(f"Fractions:   {[round(f, 4) for f in frac_ratio]}")
-    
-    print("\n2. Max Profit Strategy (Highest Value First)")
-    print(f"Total Value: {val_profit:.2f}")
-    print(f"Fractions:   {[round(f, 4) for f in frac_profit]}")
-    
-    print("\n3. Least Weight Strategy (Lowest Weight First)")
-    print(f"Total Value: {val_weight:.2f}")
-    print(f"Fractions:   {[round(f, 4) for f in frac_weight]}")
+    profits = [Fraction(i) for i in input("Enter profits: ").split()]
+    # profits = [Fraction(x) for x in [387, 281, 357, 456, 570, 768, 408, 26, 254, 62, 464]]
+    weights = [Fraction(i) for i in input("Enter weights: ").split()]
+    # weights = [Fraction(x) for x in [23, 84, 69, 47, 95, 85, 61, 96, 75, 51, 94]]
+
+    m = float(input("Enter knapsack capacity: "))
+
+    elements = list(zip(profits[:n], weights[:n]))
+
+    indexed_elements = list(enumerate(elements, start=1))
+    original_weight = {idx: w for idx, (p, w) in indexed_elements}
+
+    scaled_indexed = [
+        (idx, (p / (idx + 1), w / (idx + 1))) for idx, (p, w) in indexed_elements
+    ]
+
+    cases = [
+        ("1 / i Ratio", scaled_indexed),
+        ("Maximum Profits", sorted(indexed_elements, key=lambda ie: ie[1][0], reverse=True)),
+        ("Minimum Weights", sorted(indexed_elements, key=lambda ie: ie[1][1])),
+        (
+            "Maximum profit/weight",
+            sorted(indexed_elements, key=lambda ie: ie[1][0] / ie[1][1], reverse=True),
+        ),
+    ]
+
+    print("\nelements :", [(f"{float(p):g}", f"{float(w):g}") for p, w in elements], "(profit, weight)")
+    print("capacity :", f"{float(m):g}\n")
+
+    rows = []
+    for label, case_items in cases:
+        items_for_algo = [(idx, p, w) for idx, (p, w) in case_items]
+        profit, included = greedyKnapsack(m, items_for_algo)
+
+        ratios = [
+            included.get(idx, Fraction(0)) / original_weight[idx] for idx in range(1, n + 1)
+        ]
+        ratio_str = "[" + ", ".join(format_ratio(r) for r in ratios) + "]"
+        rows.append((label, float(profit), ratio_str))
+
+    ratio_col_width = max(24, max(len(ratio_str) for _, _, ratio_str in rows) + 2)
+
+    header = (
+        f"| {'case':<4} | {'ratios of elements':<24} | {'maximum profit':>14} "
+        f"| {'weight ratios (original order)':<{ratio_col_width}} |"
+    )
+    line = (
+        "|" + "-" * 6 + "|" + "-" * 26 + "|" + "-" * 16 + "|" + "-" * (ratio_col_width + 2) + "|"
+    )
+
+    print(line)
+    print(header)
+    print(line)
+
+    for k, (label, profit, ratio_str) in enumerate(rows, start=1):
+        print(
+            f"| {k:<4} | {label:<24} | {profit:>14.2f} "
+            f"| {ratio_str:<{ratio_col_width}} |"
+        )
+
+    print(line)
+
 
 if __name__ == "__main__":
     main()
