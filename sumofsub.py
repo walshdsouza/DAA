@@ -31,20 +31,19 @@ def main():
         print("Error: number of weights does not match n.")
         return
 
-    weights.sort()              # algorithm wants nondecreasing order
+    weights.sort()             
     w = [0] + weights
     x = [0] * (n + 2)
 
     total = sum(weights)
 
-    # Assumptions: w[1] <= m and sum of all weights >= m
     if w[1] > m or total < m:
         print("No solution possible.")
         return
 
     print("\nSorted weights:", weights)
     print("Target sum:", m, "\n")
-    SumOfSub(0, 1, total)       # SumOfSub(s=0, k=1, r=sum of all w)
+    SumOfSub(0, 1, total)       
 
 
 if __name__ == "__main__":
